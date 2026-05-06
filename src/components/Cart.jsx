@@ -25,6 +25,23 @@ function Cart({ onBack }) {
         setCartItems(items);
     }, []);
 
+    const handleCheckout = () => {
+        if (!isLoggedIn) {
+            alert("Please log in or register to proceed to checkout.");
+            window.location.href = "/login";
+            return;
+        }
+        axios.post(CART_API_ENDPOINT + `/checkout/${userEmail}/`, {
+        })
+            .then(response => {
+                alert("Checkout successful! Your order is being processed.");
+            })
+            .catch(error => {
+                console.error("Checkout failed:", error);
+                alert("Checkout failed. Please try again.");
+            });
+    }
+
     const handleRemoveItem = (key) => {
 
         if (isLoggedIn) {
@@ -56,7 +73,7 @@ function Cart({ onBack }) {
             ) : (
                 <div>
                     {cartItems.map((item) => (
-                        <div key={item.key} style={{ borderBottom: "1px solid #eee", padding: "10px 0", display: "flex", gap: "10px", alignItems: "center" }}>
+                        <div key={item.key}>
                             <img src={item.image} width="50" alt={item.title} />
                             <div>
                                 <h4>{item.title}</h4>
@@ -67,7 +84,8 @@ function Cart({ onBack }) {
                     ))}
 
                     <h3>Total: ${total.toFixed(2)}</h3>
-                    <button onClick={onBack} style={{ marginLeft: "10px" }}>Back to Products</button>
+                    <button onClick={onBack}>Back to Products</button>
+                    <button onClick={handleCheckout}>Checkout</button>
                 </div>
             )}
 
