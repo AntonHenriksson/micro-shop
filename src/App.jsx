@@ -1,5 +1,5 @@
 import React from 'react';
-import { createBrowserRouter, Outlet } from 'react-router-dom';
+import { createHashRouter, Outlet } from 'react-router-dom';
 
 import NavBar from './components/Navbar';
 import ProductList from './components/ProductList';
@@ -18,7 +18,7 @@ const Layout = () => (
 )
 
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: `/`,
     element: <Layout />,
