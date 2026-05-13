@@ -17,7 +17,7 @@ function ProductList() {
     // Fetch products from the API when the component mounts
     // In real application change to .env variable and use our own DB
     useEffect(() => {
-        axios.get("https://fakestoreapi.com/products")
+        axios.get(`${PRODUCTS_API_ENDPONINT}/products/public/all`)
             .then((response) => {
                 setProducts(response.data);
             })

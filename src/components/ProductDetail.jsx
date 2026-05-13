@@ -1,6 +1,6 @@
 import axios from "axios"
 import ProductList from "./ProductList"
-import { checkUserAuth, getUserEmailFromToken } from "../service/authService";
+import { checkUserAuth } from "../service/authService";
 
 const CART_API_ENDPOINT = import.meta.env.VITE_CART_API_ENDPOINT;
 
@@ -11,11 +11,16 @@ function ProductDetail({ product, onBack }) {
     if (!product) return null
 
 
-    const userEmail = getUserEmailFromToken()
+
     const handleAddToCart = () => {
         if (isLoggedIn) {
-            axios.post(CART_API_ENDPOINT + `/${userEmail}`, {
+            const token = localStorage.getItem("token");
+            axios.post(CART_API_ENDPOINT + `/cart/add`, {
                 productId: product.id
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             })
                 .then(response => {
                     alert(`${product.title} has been added to your account's cart!`);

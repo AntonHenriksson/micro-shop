@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const USERREGISTRY_API_ENDPOINT = import.meta.env.VITE_USERREGISTRY_API_ENDPOINT;
 
@@ -11,7 +12,7 @@ function Login() {
 
     const handleLogin = () => {
 
-        axios.post(`${USERREGISTRY_API_ENDPOINT}/login`, {
+        axios.post(`${USERREGISTRY_API_ENDPOINT}/api/auth/login`, {
             email: email,
             password: password
         }).then((response) => {
@@ -41,7 +42,9 @@ function Login() {
                 <button type="submit" onClick={handleLogin}>
                     Login
                 </button>
-                <a href="/register">Don't have an account? Register here.</a>
+
+                <Link to="/register">Don't have an account? Register here.</Link>
+
             </form>
 
         </>

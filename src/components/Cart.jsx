@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { checkUserAuth, getUserEmailFromToken } from "../service/authService";
+import { checkUserAuth } from "../service/authService";
+import axios from 'axios';
 
 const CART_API_ENDPOINT = import.meta.env.VITE_CART_API_ENDPOINT;
 
@@ -7,23 +8,52 @@ function Cart({ onBack }) {
     const [cartItems, setCartItems] = useState([]);
 
     const isLoggedIn = checkUserAuth();
-    const userEmail = getUserEmailFromToken();
 
     useEffect(() => {
-        const items = [];
+
+        const localItems = [];
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-
             if (key.startsWith('cart-item-')) {
-                const item = JSON.parse(localStorage.getItem(key));
-                items.push({
-                    ...item,
-                    key: key
-                });
+                localItems.push({ ...JSON.parse(localStorage.getItem(key)), key });
             }
         }
-        setCartItems(items);
-    }, []);
+
+        if (!isLoggedIn) {
+            setCartItems(localItems);
+            return;
+        }
+
+
+        const syncAndFetch = async () => {
+            const token = localStorage.getItem("token");
+
+            try {
+
+                const syncRequests = localItems.map(product =>
+                    axios.post(`${CART_API_ENDPOINT}/cart/add`,
+                        { productId: product.id, price: product.price },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    ).then(() => localStorage.removeItem(product.key))
+                );
+
+                await Promise.all(syncRequests);
+
+
+                const response = await axios.get(`${CART_API_ENDPOINT}/cart/items`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                setCartItems(response.data.items || response.data);
+
+            } catch (error) {
+                console.error("Cart sync error:", error);
+            }
+        };
+
+        syncAndFetch();
+    }, [isLoggedIn]);
+
 
     const handleCheckout = () => {
         if (!isLoggedIn) {
@@ -31,7 +61,7 @@ function Cart({ onBack }) {
             window.location.href = "/login";
             return;
         }
-        axios.post(CART_API_ENDPOINT + `/checkout/${userEmail}/`, {
+        axios.post(CART_API_ENDPOINT + `/cart/checkout/`, {
         })
             .then(response => {
                 alert("Checkout successful! Your order is being processed.");
@@ -42,21 +72,25 @@ function Cart({ onBack }) {
             });
     }
 
-    const handleRemoveItem = (key) => {
-
+    const handleRemoveItem = (item) => {
+        const token = localStorage.getItem("token");
         if (isLoggedIn) {
-            axios.delete(CART_API_ENDPOINT + `/${userEmail}/items/${product.id}`, {
+            const itemToRemove = item.productId || item.id
+            axios.delete(CART_API_ENDPOINT + `/cart/items/${itemToRemove}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             })
                 .then(response => {
-                    alert(`${product.title} has been removed from your account's cart!`);
+                    alert(`${item.title} has been removed from your account's cart!`);
                 })
                 .catch(error => {
                     console.error("Error removing from backend cart:", error);
                     alert("Failed to remove item from cart. Please try again.");
                 });
         } else {
-            localStorage.removeItem(key);
-            setCartItems(cartItems.filter(item => item.key !== key));
+            localStorage.removeItem(item.key);
+            setCartItems(cartItems.filter(cartItem => cartItem.key !== item.key));
         };
     };
 
@@ -73,13 +107,13 @@ function Cart({ onBack }) {
             ) : (
                 <div>
                     {cartItems.map((item) => (
-                        <div key={item.key}>
+                        <div key={item.id || item.productId || item.key}>
                             <img src={item.image} width="50" alt={item.title} />
                             <div>
                                 <h4>{item.title}</h4>
                                 <p>Price: ${item.price.toFixed(2)}</p>
                             </div>
-                            <button onClick={() => handleRemoveItem(item.key)}>Remove</button>
+                            <button onClick={() => handleRemoveItem(item)}>Remove</button>
                         </div>
                     ))}
 

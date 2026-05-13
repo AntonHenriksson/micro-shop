@@ -10,15 +10,15 @@ function Register() {
     const [lastname, setLastname] = useState("");
 
 
-    const handleRegister = () => {
-        axios.post(`${USERREGISTRY_API_ENDPOINT}/register`, {
+    const handleRegister = (e) => {
+        e.preventDefault()
+        axios.post(`${USERREGISTRY_API_ENDPOINT}/api/auth/register`, {
+
             email: email,
             password: password,
-            firstname: firstname,
-            lastname: lastname
-        }).then((response) => {
-            localStorage.setItem("token", response.data.token);
-            window.location.href = "/";
+            firstName: firstname,
+            lastName: lastname
+
         }).catch((error) => {
             console.error("Registration failed:", error);
         });
@@ -27,7 +27,7 @@ function Register() {
     return (
         <>
 
-            <form>
+            <form onSubmit={handleRegister}>
                 <input
                     type="email"
                     placeholder="Email"
@@ -52,7 +52,7 @@ function Register() {
                     value={lastname}
                     onChange={(e) => setLastname(e.target.value)}
                 />
-                <button type="submit" onClick={handleRegister}>
+                <button type="submit">
                     Register
                 </button>
             </form>
