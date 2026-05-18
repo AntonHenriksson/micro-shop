@@ -40,7 +40,7 @@ function ProductDetail({ product, onBack }) {
     };
 
     return (
-        <>
+        <div className="product-card">
             <h1>{product.title}</h1>
             <img src={product.image} width="200" />
             <p>{product.description}</p>
@@ -48,7 +48,7 @@ function ProductDetail({ product, onBack }) {
 
             <button onClick={handleAddToCart}>Add to Cart</button>
             <button onClick={onBack}>Back to Products</button>
-        </>
+        </div>
     )
 
 }

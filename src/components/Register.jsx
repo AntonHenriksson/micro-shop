@@ -25,9 +25,9 @@ function Register() {
     }
 
     return (
-        <>
+        <div className="login-page">
 
-            <form onSubmit={handleRegister}>
+            <form className="login-form" onSubmit={handleRegister}>
                 <input
                     type="email"
                     placeholder="Email"
@@ -57,7 +57,7 @@ function Register() {
                 </button>
             </form>
 
-        </>
+        </div>
     )
 }
 

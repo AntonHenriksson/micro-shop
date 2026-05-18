@@ -10,7 +10,6 @@ function Cart({ onBack }) {
     const isLoggedIn = checkUserAuth();
 
     useEffect(() => {
-
         const localItems = [];
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
@@ -24,12 +23,10 @@ function Cart({ onBack }) {
             return;
         }
 
-
         const syncAndFetch = async () => {
             const token = localStorage.getItem("token");
 
             try {
-
                 const syncRequests = localItems.map(product =>
                     axios.post(`${CART_API_ENDPOINT}/cart/add`,
                         { productId: product.id, price: product.price },
@@ -38,7 +35,6 @@ function Cart({ onBack }) {
                 );
 
                 await Promise.all(syncRequests);
-
 
                 const response = await axios.get(`${CART_API_ENDPOINT}/cart/items`, {
                     headers: { Authorization: `Bearer ${token}` }
@@ -54,17 +50,20 @@ function Cart({ onBack }) {
         syncAndFetch();
     }, [isLoggedIn]);
 
-
     const handleCheckout = () => {
         if (!isLoggedIn) {
             alert("Please log in or register to proceed to checkout.");
             window.location.href = "/login";
             return;
         }
-        axios.post(CART_API_ENDPOINT + `/cart/checkout/`, {
+
+        const token = localStorage.getItem("token");
+        axios.post(`${CART_API_ENDPOINT}/cart/checkout/`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
         })
             .then(response => {
                 alert("Checkout successful! Your order is being processed.");
+                setCartItems([]);
             })
             .catch(error => {
                 console.error("Checkout failed:", error);
@@ -74,15 +73,15 @@ function Cart({ onBack }) {
 
     const handleRemoveItem = (item) => {
         const token = localStorage.getItem("token");
+        const currentId = item.productId || item.id;
+
         if (isLoggedIn) {
-            const itemToRemove = item.productId || item.id
-            axios.delete(CART_API_ENDPOINT + `/cart/items/${itemToRemove}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            axios.delete(`${CART_API_ENDPOINT}/cart/items/${currentId}`, {
+                headers: { Authorization: `Bearer ${token}` }
             })
                 .then(response => {
-                    alert(`${item.title} has been removed from your account's cart!`);
+                    alert(`${item.title || 'Item'} has been removed from your account's cart!`);
+                    setCartItems(cartItems.filter(cartItem => (cartItem.productId || cartItem.id) !== currentId));
                 })
                 .catch(error => {
                     console.error("Error removing from backend cart:", error);
@@ -91,40 +90,41 @@ function Cart({ onBack }) {
         } else {
             localStorage.removeItem(item.key);
             setCartItems(cartItems.filter(cartItem => cartItem.key !== item.key));
-        };
+        }
     };
-
-
 
     const total = cartItems.reduce((sum, item) => sum + item.price, 0);
 
     return (
-        <div>
+        <div className="shop-container">
             <h2>Cart</h2>
 
             {cartItems.length === 0 ? (
-                <p>Cart is empty</p>
+                <div>
+                    <p>Cart is empty</p>
+                    <button onClick={onBack}>Back to Products</button>
+                </div>
             ) : (
                 <div>
-                    {cartItems.map((item) => (
-                        <div key={item.id || item.productId || item.key}>
-                            <img src={item.image} width="50" alt={item.title} />
-                            <div>
-                                <h4>{item.title}</h4>
-                                <p>Price: ${item.price.toFixed(2)}</p>
+                    <div className="product-grid">
+                        {cartItems.map((item) => (
+                            <div className="product-card" key={item.id || item.productId || item.key}>
+                                <img src={item.image} width="50" alt={item.title} />
+                                <div>
+                                    <h4>{item.title}</h4>
+                                    <p>Price: ${item.price.toFixed(2)}</p>
+                                </div>
+                                <button onClick={() => handleRemoveItem(item)}>Remove</button>
                             </div>
-                            <button onClick={() => handleRemoveItem(item)}>Remove</button>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
 
-                    <h3>Total: ${total.toFixed(2)}</h3>
-                    <button onClick={onBack}>Back to Products</button>
-                    <button onClick={handleCheckout}>Checkout</button>
+                    <div style={{ marginTop: '20px' }}>
+                        <h3>Total: ${total.toFixed(2)}</h3>
+                        <button onClick={onBack} style={{ marginRight: '10px' }}>Back to Products</button>
+                        <button onClick={handleCheckout}>Checkout</button>
+                    </div>
                 </div>
-            )}
-
-            {cartItems.length === 0 && (
-                <button onClick={onBack}>Back to Products</button>
             )}
         </div>
     );

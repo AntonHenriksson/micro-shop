@@ -14,8 +14,6 @@ function ProductList() {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [viewingCart, setViewingCart] = useState(false);
 
-    // Fetch products from the API when the component mounts
-    // In real application change to .env variable and use our own DB
     useEffect(() => {
         axios.get(`${PRODUCTS_API_ENDPONINT}/products/public/all`)
             .then((response) => {
@@ -34,7 +32,7 @@ function ProductList() {
 
             <button onClick={() => setViewingCart(true)}>View Cart</button>
             {selectedProduct && (
-                <div className="product-detail-container">
+                <div className="shop-conainer">
                     <hr />
                     <ProductDetail
                         product={selectedProduct}
@@ -42,7 +40,7 @@ function ProductList() {
                 </div>
             )}
             {!selectedProduct && (
-                <div>
+                <div className="shop-container">
                     <h1>Product List</h1>
                     <label htmlFor="category">Filter by Category:</label>
                     <select
@@ -57,12 +55,12 @@ function ProductList() {
                         <option value="electronics">electronics</option>
                     </select>
 
-                    <div>
+                    <div className="product-grid">
 
                         {products
                             .filter((product) => category === "All" || product.category === category)
                             .map((product) => (
-                                <div key={product.id} onClick={() => setSelectedProduct(product)}>
+                                <div className="product-card" key={product.id} onClick={() => setSelectedProduct(product)}>
                                     <img src={product.image} width="100" />
                                     <h2>{product.title}</h2>
                                     <p>Price: ${product.price.toFixed(2)}</p>
